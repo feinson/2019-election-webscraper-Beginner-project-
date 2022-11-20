@@ -20,3 +20,6 @@ I added a second script that, additionally to scraping the election results, tak
 
 ## Test script
 Please ignore the test script. I use it to muck around and test stuff. I will get rid off it eventually.
+
+## Data folders
+Running the scripts outputs files to the data_folder and mp_photos_list directories.
