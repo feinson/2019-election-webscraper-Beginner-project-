@@ -2,6 +2,7 @@ from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.common.by import By
 import time
+import pandas as pd
 
 
 chrome_options = Options()
@@ -34,7 +35,7 @@ class Scraper:
         letter_tables = constituency_div.find_elements(by=By.XPATH, value='./table')
 
         for letter in letter_tables:
-            time.sleep(0.1)
+            time.sleep(0.05)
             print(letter.get_attribute('id'))
             trs = letter.find_elements(by=By.XPATH, value='./tbody/tr')
             for row in trs:
@@ -93,12 +94,51 @@ class Scraper:
 
 
         
-            
 
 
 if __name__ == '__main__':
     election = Scraper(central_link)
-    time.sleep(0.5)
-    print(election.get_results('https://www.bbc.co.uk/news/politics/constituencies/E14000959'))
-    #print(election.get_links_names_nations()[0])
+    triple_list = election.get_links_names_nations()
+    sixfifty = len(triple_list[0])
 
+    data = pd.DataFrame({"#":range(1,sixfifty+1),  # Create pandas DataFrame
+                        "Constituency":triple_list[0],
+                        "Nation":triple_list[1],
+                        "Link":triple_list[2],
+                        "Result":range(0,sixfifty),
+                        "First party":range(0,sixfifty),
+                        "Second party":range(0,sixfifty),
+                        "MP":range(0,sixfifty),
+                        "Total votes":range(0,sixfifty),
+                        "Votes for winner":range(0,sixfifty)})
+    
+    for i, link in enumerate(triple_list[2]):
+        data.iloc[i,4:]=election.get_results(link)
+        time.sleep(0.1)
+
+    data.to_csv("election_results_scraped.csv")
+
+# if __name__ == '__main__':
+#     election = Scraper(central_link)
+#     #triple_list = election.get_links_names_nations()
+#     sixfifty = 650
+
+#     listy=list(range(0,sixfifty))
+#     data = pd.DataFrame({"#":range(1,sixfifty+1),  # Create pandas DataFrame
+#                         "Constituency":listy,
+#                         "Nation":listy,
+#                         "Link":listy,
+#                         "Result":listy,
+#                         "First party":listy,
+#                         "Second party":listy,
+#                         "MP":listy,
+#                         "Total votes":listy,
+#                         "Votes for winner":listy})
+
+#     print(data)
+    
+#     for i, link in enumerate(listy):
+#         data.iloc[i,4:]=election.get_results("https://www.bbc.co.uk/news/politics/constituencies/W07000049")
+#         time.sleep(0.1)
+
+    data.to_csv("election_results_scraped.csv")
