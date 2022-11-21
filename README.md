@@ -3,8 +3,9 @@
 This github repo representes my first foray into the world of webscraping. It currently includes a python script which uses selenium to scrape the results of the 2019 UK General Election from the BBC website.
 
 ## Election Scraper with Selenium
-This script first opens the A-Z Consituency list on the BBC website and extracts the link to the page of each constituency in the UK. It then cycles through each link, pulling the results of the election. It puts these results into a pandas dataframe.
+This script 'selenium_scraper.py' first opens the A-Z Consituency list on the BBC website and extracts the link to the page of each constituency in the UK. It then cycles through each link, pulling the results of the election. It puts these results into a pandas dataframe.
 The output is a csv file that contains the following headings:
+- ONS ID
 - Constituency (name of)
 - Nation
 - Link
@@ -15,8 +16,11 @@ The output is a csv file that contains the following headings:
 - Total votes
 - Votes for winner
 
-## Image scraping
-I added a second script that, additionally to scraping the election results, takes the name of the MP and then goes to www.theyworkforyou.com and downloads the profile picture for each MP, based on looking for their name from the BBC results. Currently it runs into a slight issue if the BBC's name of the MP does not match the name of the MP on www.theyworkforyou.com (for example - "Chris" vs "Christopher"). It also runs into a slight issue if, like in the case of "David Davies", there are multiple profiles for that name on www.theyworkforyou.com. Both these cases are handed with try/except statements and the image for that MP is simply not downloaded. According to my testing the script pulled images for 612/650 MPs elected in 2019.
+## Election Scraper with BeautifulSoup
+I added a second script 'soup_scraper.py' that provides exactly the same functionality as the first, but uses the BeautifulSoup library rather than Selenium. The result of this is that this script is much much faster.
+
+## soup_scraper_with_photos.py
+This script has the additional functionality of downloading a photo for each MP from their profile picture on www.streetlist.co.uk. Currently there is a problem with the Northern Irish constituencies since there are no profile pictures for Northern Irish MPs on www.streetlist.co.uk. This could be solved by potentially finding a better source of the photos
 
 ## Test script
 Please ignore the test script. I use it to muck around and test stuff. I will get rid off it eventually.

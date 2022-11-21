@@ -1,14 +1,9 @@
-from selenium import webdriver
-from selenium.webdriver.chrome.options import Options
-from selenium.webdriver.common.by import By
+from bs4 import BeautifulSoup
 import time
 import pandas as pd
 import requests
-import io
-from PIL import Image
 
 
-chrome_options = Options()
 # #chrome_options.add_experimental_option("detach", True)
 # chrome_options.add_argument("--headless") # Runs Chrome in headless mode.
 # chrome_options.add_argument('--no-sandbox') # Bypass OS security model
@@ -18,7 +13,7 @@ chrome_options = Options()
 # chrome_options.add_argument("--disable-extensions")
 
 #(options=chrome_options)\/
-driver = webdriver.Chrome(options=chrome_options)
+
 
 
 central_link = "https://www.bbc.co.uk/news/politics/constituencies"
@@ -27,32 +22,33 @@ central_link = "https://www.bbc.co.uk/news/politics/constituencies"
 class Scraper:
 
     def __init__(self, link):
-        driver.get(link)
+        self.central_link = link
+        pass
 
     def get_links_names_nations(self):
-        name_list=[]
-        nation_list=[]
-        link_list=[]
+        name_list, nation_list, link_list =[], [], []
 
-        constituency_div = driver.find_element(by=By.XPATH, value='//*[@id="az_constituency_list"]')
-        letter_tables = constituency_div.find_elements(by=By.XPATH, value='./table')
+        response = requests.get(self.central_link)
+        soup = BeautifulSoup(response.content, "html.parser")
+        letter_tables = soup.find_all("table", class_ = 'az-table')
 
         for letter in letter_tables:
             #time.sleep(0.05)
-            print(letter.get_attribute('id'))
-            trs = letter.find_elements(by=By.XPATH, value='./tbody/tr')
+            print(letter.get('id'))
+            trs = letter.find_all("tr", class_ = 'az-table__row')
             for row in trs:
-                a_tag = row.find_element(by=By.TAG_NAME, value='a')
-                name = a_tag.get_attribute('text')
+                a_tag = row.find('a')
+                name = a_tag.get_text()
                 name_list.append(name)
                 
-                n_tag = row.find_element(by=By.XPATH, value='./td')
-                nation = n_tag.get_attribute('textContent')
+                n_tag = row.find("td")
+                nation = n_tag.get_text()
                 nation_list.append(nation)
                 
-                link = a_tag.get_attribute('href')
+                link = a_tag['href']
+                link =f"https://www.bbc.co.uk{link}"
                 link_list.append(link)
-                
+                #print(name,nation,link)
                 
                 
 
@@ -64,30 +60,35 @@ class Scraper:
         #con, lab, ld, green, brexit, snp, pc, dup, sdlp, uup, alliance, other = [0,0,0,0,0,0,0,0,0,0,0,0]
         #if we wanted to add detailed party results data we could extract it this way
 
-        driver.get(consituency_page)
+        response = requests.get(consituency_page)
+        soup = BeautifulSoup(response.content, "html.parser")
         #time.sleep(0.1)
-        headline = driver.find_element(by=By.XPATH, value = '//*[@id="constituency_result_headline2019"]/div/div[1]/div[1]/p')
-        result = headline.get_attribute('textContent')
-        full_result_list = driver.find_element(by=By.XPATH, value = '//*[@id="constituency_result_table2019"]/div/ol')
-        party_zones = full_result_list.find_elements(by=By.XPATH, value = './li')
+        headline = soup.find("p", class_='ge2019-constituency-result-headline__text')
+        result = headline.get_text()
 
+        full_result_list = soup.find("ol", class_='ge2019-constituency-result__list')
+        party_zones = full_result_list.find_all('li', recursive = False)
+        
 
         party_name_list = []
         votes_list = []
         for party_frame in party_zones:
-            party_name_container = party_frame.find_element(by=By.CLASS_NAME, value = 'ge2019-constituency-result__party-name')
-            party_name_list.append(party_name_container.get_attribute('textContent'))
+            #print(party_frame)
+            party_name_container = party_frame.find('span', class_ = 'ge2019-constituency-result__party-name')
+            party_name = party_name_container.get_text()
+            party_name_list.append(party_name)
 
-            vote_container = party_frame.find_element(by=By.CLASS_NAME, value = 'ge2019-constituency-result__details-value')
-            v = vote_container.get_attribute('textContent')
+            vote_container = party_frame.find('span', class_ = 'ge2019-constituency-result__details-value')
+            v = vote_container.get_text()
             v = v.replace(",","")
             v=int(v)
             votes_list.append(v)
         # I extracted the whole list of party's so that later if I want to add detailed party results, I can
         first_party, second_party =party_name_list[0:2]
 
-        mp_container = full_result_list.find_element(by=By.CLASS_NAME, value = 'ge2019-constituency-result__candidate-name')
-        mp = mp_container.get_attribute('textContent')
+        mp_container = full_result_list.find('span', class_ = 'ge2019-constituency-result__candidate-name')
+        mp = mp_container.get_text()
+        print(mp)
 
         total_votes = sum(votes_list)
         votes_for_winner =votes_list[0]
@@ -95,28 +96,17 @@ class Scraper:
         return  [result, first_party, second_party, mp, total_votes, votes_for_winner]
 
 
-    def name_to_photo(self, name):
+    def id_to_photo(self, id_ons):
         try:
-            namey_name = name.split()
-            mp_page = f"https://www.theyworkforyou.com/mp/{namey_name[0]}_{namey_name[1]}"
-            driver.get(mp_page)
-            img_frame = driver.find_element(by=By.TAG_NAME, value="img")
-
-            link = img_frame.get_attribute("src")
-            img_content = requests.get(link).content
-            img_file = io.BytesIO(img_content)
-            img = Image.open(img_file)
-            file_path = f"./data_folder/mp_photos_list/{namey_name[0]}_{namey_name[1]}.jpg"
+            mp_page = f"https://www.streetlist.co.uk/democracy/mp-photos/{id_ons}.jpg"
+            img_content = requests.get(mp_page).content
+            file_path = f"./data_folder/mp_photos_list/{id_ons}.jpg"
 
             with open(file_path, "wb") as f:
-                img.save(f, "JPEG")
+                f.write(img_content)
         except:
             print(f"There was a problem when I went to the page of {name}.")
     
-
-
-        
-
 
 if __name__ == '__main__':
     election = Scraper(central_link)
@@ -124,6 +114,7 @@ if __name__ == '__main__':
     sixfifty = len(triple_list[0])
 
     data = pd.DataFrame({"#":range(1,sixfifty+1),  # Create pandas DataFrame
+                        "ONS ID":range(1,sixfifty+1),
                         "Constituency":triple_list[0],
                         "Nation":triple_list[1],
                         "Link":triple_list[2],
@@ -134,14 +125,15 @@ if __name__ == '__main__':
                         "Total votes":range(0,sixfifty),
                         "Votes for winner":range(0,sixfifty)})
     
-    list_of_wiki_links=[]
+    
     for i, link in enumerate(triple_list[2]):
         res = election.get_results(link)
-        data.iloc[i,4:]=res
+        ons_id = link.split("/").pop()
+        data.iloc[i,1] = ons_id
+        data.iloc[i,5:] = res
         print(triple_list[0][i])
-        election.name_to_photo(res[3])
-        
-        #time.sleep(0.1)
+        election.id_to_photo(ons_id)
+    
 
     
 
