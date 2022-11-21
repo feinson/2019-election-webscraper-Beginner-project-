@@ -100,7 +100,7 @@ if __name__ == '__main__':
     sixfifty = len(triple_list[0])
 
     data = pd.DataFrame({"#":range(1,sixfifty+1),  # Create pandas DataFrame
-                        "ONS ID":triple_list[2].split("/").pop(),
+                        "ONS ID":range(1,sixfifty+1),
                         "Constituency":triple_list[0],
                         "Nation":triple_list[1],
                         "Link":triple_list[2],
@@ -114,6 +114,8 @@ if __name__ == '__main__':
     
     for i, link in enumerate(triple_list[2]):
         res = election.get_results(link)
+        ons_id = link.split("/").pop()
+        data.iloc[i,1] = ons_id
         data.iloc[i,5:]=res
         print(triple_list[0][i])
 
