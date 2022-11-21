@@ -105,7 +105,7 @@ class Scraper:
             with open(file_path, "wb") as f:
                 f.write(img_content)
         except:
-            print(f"There was a problem when I went to the page of {name}.")
+            print(f"There was a problem when I went to the page of {id_ons}.")
     
 
 if __name__ == '__main__':
