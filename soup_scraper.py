@@ -1,5 +1,4 @@
 from bs4 import BeautifulSoup
-import time
 import pandas as pd
 import requests
 
@@ -22,11 +21,21 @@ central_link = "https://www.bbc.co.uk/news/politics/constituencies"
 class Scraper:
 
     def __init__(self, link):
+
         self.central_link = link
-        pass
+
 
     def get_links_names_nations(self):
-        name_list, nation_list, link_list =[], [], []
+        '''It takes the central link, finds all the tables, finds all the rows, finds the name, nation and
+        link for each row, and returns a list of lists containing the names, nations and links
+        
+        Returns
+        -------
+            A list of lists.
+        
+        '''
+
+        name_list, nation_list, link_list = [], [], []
 
         response = requests.get(self.central_link)
         soup = BeautifulSoup(response.content, "html.parser")
@@ -45,16 +54,29 @@ class Scraper:
                 nation_list.append(nation)
                 
                 link = a_tag['href']
-                link =f"https://www.bbc.co.uk{link}"
+                link = f"https://www.bbc.co.uk{link}"
                 link_list.append(link)
                 #print(name,nation,link)
-                
-                
 
         return [name_list, nation_list, link_list]
 
 
     def get_results(self,consituency_page):
+        '''It takes a constituency page as an input, and returns a list of the result, the name of the
+        winning party, the name of the second party, the name of the MP, the total number of votes cast,
+        and the number of votes for the winning party
+        
+        Parameters
+        ----------
+        consituency_page
+            the url of the constituency page
+        
+        Returns
+        -------
+            The result, the name of the first and second party, the name of the MP, the total votes and the
+        votes for the winner.
+        
+        '''
 
         #con, lab, ld, green, brexit, snp, pc, dup, sdlp, uup, alliance, other = [0,0,0,0,0,0,0,0,0,0,0,0]
         #if we wanted to add detailed party results data we could extract it this way
@@ -65,12 +87,12 @@ class Scraper:
         result = headline.get_text()
 
         full_result_list = soup.find("ol", class_='ge2019-constituency-result__list')
-        party_zones = full_result_list.find_all('li', recursive = False)
-        
+        party_frames = full_result_list.find_all('li', recursive = False)
 
         party_name_list = []
         votes_list = []
-        for party_frame in party_zones:
+
+        for party_frame in party_frames:
             #print(party_frame)
             party_name_container = party_frame.find('span', class_ = 'ge2019-constituency-result__party-name')
             party_name = party_name_container.get_text()
@@ -111,14 +133,11 @@ if __name__ == '__main__':
                         "Total votes":range(0,sixfifty),
                         "Votes for winner":range(0,sixfifty)})
     
-    
     for i, link in enumerate(triple_list[2]):
         res = election.get_results(link)
         ons_id = link.split("/").pop()
         data.iloc[i,1] = ons_id
-        data.iloc[i,5:]=res
+        data.iloc[i,5:] = res
         print(triple_list[0][i])
-
-    
 
     data.to_csv("./data_folder/election_results_scraped.csv")

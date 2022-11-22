@@ -24,12 +24,12 @@ central_link = "https://www.bbc.co.uk/news/politics/constituencies"
 class Scraper:
 
     def __init__(self, link):
+
         driver.get(link)
 
+
     def get_links_names_nations(self):
-        name_list=[]
-        nation_list=[]
-        link_list=[]
+        name_list, nation_list, link_list = [], [], []
 
         constituency_div = driver.find_element(by=By.XPATH, value='//*[@id="az_constituency_list"]')
         letter_tables = constituency_div.find_elements(by=By.XPATH, value='./table')
@@ -49,9 +49,6 @@ class Scraper:
                 
                 link = a_tag.get_attribute('href')
                 link_list.append(link)
-                
-                
-                
 
         return [name_list, nation_list, link_list]
 
@@ -66,12 +63,13 @@ class Scraper:
         headline = driver.find_element(by=By.XPATH, value = '//*[@id="constituency_result_headline2019"]/div/div[1]/div[1]/p')
         result = headline.get_attribute('textContent')
         full_result_list = driver.find_element(by=By.XPATH, value = '//*[@id="constituency_result_table2019"]/div/ol')
-        party_zones = full_result_list.find_elements(by=By.XPATH, value = './li')
+        party_frames = full_result_list.find_elements(by=By.XPATH, value = './li')
 
 
         party_name_list = []
         votes_list = []
-        for party_frame in party_zones:
+
+        for party_frame in party_frames:
             party_name_container = party_frame.find_element(by=By.CLASS_NAME, value = 'ge2019-constituency-result__party-name')
             party_name_list.append(party_name_container.get_attribute('textContent'))
 
@@ -87,14 +85,9 @@ class Scraper:
         mp = mp_container.get_attribute('textContent')
 
         total_votes = sum(votes_list)
-        votes_for_winner =votes_list[0]
+        votes_for_winner = votes_list[0]
 
         return  [result, first_party, second_party, mp, total_votes, votes_for_winner]
-
-
-
-        
-
 
 if __name__ == '__main__':
     election = Scraper(central_link)
@@ -117,7 +110,7 @@ if __name__ == '__main__':
         res = election.get_results(link)
         ons_id = link.split("/").pop()
         data.iloc[i,1] = ons_id
-        data.iloc[i,5:]=res
+        data.iloc[i,5:] = res
         print(triple_list[0][i])
 
     data.to_csv("election_results_scraped.csv")

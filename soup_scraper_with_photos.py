@@ -1,5 +1,4 @@
 from bs4 import BeautifulSoup
-import time
 import pandas as pd
 import requests
 
@@ -22,10 +21,12 @@ central_link = "https://www.bbc.co.uk/news/politics/constituencies"
 class Scraper:
 
     def __init__(self, link):
+
         self.central_link = link
-        pass
+
 
     def get_links_names_nations(self):
+
         name_list, nation_list, link_list =[], [], []
 
         response = requests.get(self.central_link)
@@ -46,11 +47,9 @@ class Scraper:
                 nation_list.append(nation)
                 
                 link = a_tag['href']
-                link =f"https://www.bbc.co.uk{link}"
+                link = f"https://www.bbc.co.uk{link}"
                 link_list.append(link)
                 #print(name,nation,link)
-                
-                
 
         return [name_list, nation_list, link_list]
 
@@ -67,12 +66,12 @@ class Scraper:
         result = headline.get_text()
 
         full_result_list = soup.find("ol", class_='ge2019-constituency-result__list')
-        party_zones = full_result_list.find_all('li', recursive = False)
+        party_frames = full_result_list.find_all('li', recursive = False)
         
 
         party_name_list = []
         votes_list = []
-        for party_frame in party_zones:
+        for party_frame in party_frames:
             #print(party_frame)
             party_name_container = party_frame.find('span', class_ = 'ge2019-constituency-result__party-name')
             party_name = party_name_container.get_text()
